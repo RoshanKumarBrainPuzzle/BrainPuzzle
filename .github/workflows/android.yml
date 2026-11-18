@@ -1,12 +1,16 @@
-
 name: Build Brain Puzzle APK
 
 on:
+  push:
+    paths:
+      - '.github/workflows/android.yml'
+      - 'BrainPuzzle_RoshanKumar_v3_2.zip'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -16,10 +20,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.14'
+
       - name: Download and extract project
         run: |
           mkdir project
@@ -38,4 +44,3 @@ jobs:
           name: BrainPuzzle-debug-APK
           path: project/**/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-          
