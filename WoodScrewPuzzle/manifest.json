@@ -1,0 +1,12 @@
+{
+  "name": "RK Gaming - 3D Wood Screw Puzzle",
+  "short_name": "Wood Screw",
+  "description": "A tactile wooden screw puzzle by RK Gaming.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#17100b",
+  "theme_color": "#17100b",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
