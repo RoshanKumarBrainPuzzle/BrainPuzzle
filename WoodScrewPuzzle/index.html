@@ -43,7 +43,7 @@ document.getElementById('undo').onclick=()=>{let id=history.pop();if(id===undefi
 document.getElementById('hint').onclick=()=>{let s=screws.find(v=>!v.gone);if(!s){toast('Board is clear!');return}hinted=s.id;draw();toast('Try this screw next!');sound(520)};
 document.getElementById('remove').onclick=()=>{if(coins<20){toast('Need 20 coins');return}removeMode=true;toast('Choose a screw to remove • 20 coins')};
 document.getElementById('rotate').onclick=()=>{angle=(angle+90)%360;draw();sound(220)};\nconst soundBtn=document.createElement('button');soundBtn.className='tool';soundBtn.innerHTML='<span>🔊</span>SOUND';document.querySelector('.controls').appendChild(soundBtn);soundBtn.onclick=()=>{soundOn=!soundOn;soundBtn.innerHTML='<span>'+(soundOn?'🔊':'🔇')+'</span>SOUND';save();toast(soundOn?'Sound on':'Sound off')};
-function next(){if(levelWon){level++}makeLevel();toast(levelWon?'New puzzle unlocked!':'Level restarted');}
+function next(){let wasWon=levelWon;if(wasWon)level++;makeLevel();toast(wasWon?'New puzzle unlocked!':'Level restarted');}
 document.getElementById('next').onclick=next;document.getElementById('continue').onclick=next;
 makeLevel();
 </script></body></html>
