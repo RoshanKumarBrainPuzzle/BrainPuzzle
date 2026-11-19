@@ -1,0 +1,40 @@
+name: Build RK Wood Screw Puzzle 3D APK
+
+on:
+  push:
+    paths:
+      - 'WoodScrewPuzzle/**'
+      - '.github/workflows/wood-screw-puzzle.yml'
+  workflow_dispatch:
+
+jobs:
+  build-wood-screw-puzzle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14'
+      - name: Prepare offline 3D engine
+        run: |
+          cd WoodScrewPuzzle
+          npm install --no-save three@0.160.0
+          mkdir -p app/src/main/assets
+          cp node_modules/three/build/three.min.js app/src/main/assets/three.min.js
+      - name: Build Android APK
+        run: |
+          cd WoodScrewPuzzle
+          gradle assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: RK-Wood-Screw-Puzzle-3D-APK
+          path: WoodScrewPuzzle/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
