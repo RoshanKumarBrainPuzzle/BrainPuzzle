@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#17100b"><title>RK Gaming • 3D Wood Screw Puzzle</title>
+<style>
+:root{--gold:#ffc45b;--ink:#21150d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 5%,#684326,#1a100b 72%);color:#fff4df;font-family:system-ui,-apple-system,Segoe UI,sans-serif;min-height:100dvh;overflow:hidden;touch-action:pan-y}
+#app{height:100dvh;max-width:680px;margin:auto;display:flex;flex-direction:column;padding:12px 14px 16px;gap:10px}
+header{display:flex;align-items:center;justify-content:space-between}.brand{font-weight:1000;letter-spacing:1px;color:#ffd37c;text-shadow:0 2px 0 #6d3511;font-size:17px}.brand small{display:block;font-size:9px;letter-spacing:3px;color:#fff0cf}
+.pill{background:linear-gradient(#5d3b21,#2b190f);border:1px solid #a96b31;border-radius:16px;padding:8px 12px;box-shadow:inset 0 1px #ffdf9a;font-weight:800;font-size:12px}
+.stats{display:flex;gap:8px;justify-content:space-between}.stat{flex:1;text-align:center;background:#2b1b11cc;border:1px solid #78502e;border-radius:13px;padding:7px 4px;font-size:11px;color:#e9c99c}.stat b{display:block;color:#ffd27c;font-size:17px}
+h1{font-size:clamp(21px,5vw,29px);margin:2px 0 0;text-align:center;color:#ffcf75;text-shadow:0 3px 0 #5b2e0b}.sub{text-align:center;font-size:12px;color:#e9caa4;margin-top:-7px}
+#stage{position:relative;flex:1;min-height:270px;display:flex;align-items:center;justify-content:center;perspective:900px;overflow:hidden}
+canvas{width:min(94vw,540px);height:min(94vw,540px);max-height:100%;object-fit:contain;filter:drop-shadow(0 22px 18px #090604aa)}
+#toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#26180fdd;border:1px solid #c18a48;border-radius:20px;padding:8px 14px;font-size:12px;white-space:nowrap;opacity:0;transition:.25s;pointer-events:none}#toast.show{opacity:1}
+.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.tool{border:1px solid #a66d36;border-radius:14px;background:linear-gradient(#754a28,#3a2415);color:#fff0d3;padding:10px 4px;font-weight:800;box-shadow:inset 0 1px #ffdc9b,0 4px 0 #160d08;font-size:12px}.tool:active{transform:translateY(3px);box-shadow:inset 0 1px #ffdc9b,0 1px 0 #160d08}.tool span{display:block;font-size:20px;margin-bottom:2px}
+.bottom{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#c9a77e}.primary{background:linear-gradient(#ffd778,#dc8c25);color:#3b210c;border:0;border-radius:22px;padding:11px 22px;font-weight:1000;box-shadow:0 4px 0 #82430d}
+.overlay{position:fixed;inset:0;background:#100a07dd;display:none;align-items:center;justify-content:center;padding:24px;z-index:5}.panel{max-width:380px;width:100%;background:linear-gradient(145deg,#684326,#24150d);border:2px solid #d69a4d;border-radius:24px;padding:25px;text-align:center;box-shadow:0 20px 60px #000}.panel h2{color:#ffd27b}.panel p{color:#f1d8b3;line-height:1.5}
+@media(min-height:800px){#app{padding-top:18px;gap:13px}.tool{padding:13px 4px}}
+</style></head><body>
+<div id="app">
+<header><div class="brand">👑 RK GAMING<small>PUZZLE STUDIO</small></div><div class="pill">🪙 <span id="coins">250</span></div></header>
+<div class="stats"><div class="stat">LEVEL<b id="level">01</b></div><div class="stat">SCREWS LEFT<b id="left">8</b></div><div class="stat">MOVES<b id="moves">0</b></div></div>
+<h1>3D WOOD SCREW PUZZLE</h1><div class="sub">Remove every screw • Think before you turn</div>
+<div id="stage"><canvas id="game" width="600" height="600" aria-label="3D wooden screw puzzle board"></canvas><div id="toast"></div></div>
+<div class="controls"><button class="tool" id="undo"><span>↶</span>UNDO</button><button class="tool" id="hint"><span>💡</span>HINT</button><button class="tool" id="remove"><span>🔧</span>REMOVE</button><button class="tool" id="rotate"><span>⟳</span>ROTATE</button></div>
+<div class="bottom"><span>🔊 Realistic sound & vibration</span><button class="primary" id="next">NEXT LEVEL ›</button></div>
+</div>
+<div class="overlay" id="win"><div class="panel"><div style="font-size:48px">🏆</div><h2>LEVEL COMPLETE!</h2><p>Great work! You solved the wooden puzzle.</p><div style="font-size:24px;color:#ffd27b;margin:14px">⭐ ⭐ ⭐</div><button class="primary" id="continue">CONTINUE</button></div></div>
+<script>
+const c=document.getElementById('game'),ctx=c.getContext('2d');let level=1,coins=250,moves=0,angle=0,selected=null,history=[],screws=[],hinted=-1,removeMode=false;
+const patterns=[[[300,145],[190,230],[410,230],[145,355],[455,355],[230,455],[370,455],[300,300]],[[300,130],[175,205],[425,205],[145,330],[455,330],[210,455],[390,455],[300,300],[300,500]],[[300,120],[190,180],[410,180],[130,300],[470,300],[190,420],[410,420],[300,500],[300,300],[300,240]]];
+function makeLevel(){let p=patterns[(level-1)%patterns.length];screws=p.map((v,i)=>({x:v[0],y:v[1],gone:false,spin:0,id:i}));moves=0;history=[];hinted=-1;sync();draw()}
+function sync(){document.getElementById('level').textContent=String(level).padStart(2,'0');document.getElementById('left').textContent=screws.filter(s=>!s.gone).length;document.getElementById('moves').textContent=moves;document.getElementById('coins').textContent=coins}
+function wood(x,y,w,h,depth=15,fill='#bd7b3d'){ctx.save();ctx.shadowColor='#160b05aa';ctx.shadowBlur=16;ctx.shadowOffsetY=12;ctx.fillStyle='#603516';ctx.beginPath();ctx.roundRect(x-w/2,y-h/2+depth,w,h,18);ctx.fill();ctx.shadowColor='transparent';ctx.fillStyle=fill;ctx.beginPath();ctx.roundRect(x-w/2,y-h/2,w,h,18);ctx.fill();let g=ctx.createLinearGradient(x-w/2,y,x+w/2,y);g.addColorStop(0,'#7d451f');g.addColorStop(.18,'#d69a5b');g.addColorStop(.55,'#bd7b3d');g.addColorStop(1,'#75401e');ctx.strokeStyle=g;ctx.lineWidth=5;ctx.stroke();ctx.save();ctx.beginPath();ctx.roundRect(x-w/2+5,y-h/2+5,w-10,h-10,13);ctx.clip();for(let i=0;i<8;i++){ctx.strokeStyle=i%2?'#6e3d20aa':'#f4c58a55';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-w/2+8,y-h/2+18+i*h/8);ctx.bezierCurveTo(x-60,y-h/2+8+i*h/8,x+40,y-h/2+28+i*h/8,x+w/2-8,y-h/2+14+i*h/8);ctx.stroke()}ctx.restore();ctx.restore()}
+function screw(s){let {x,y}=s;ctx.save();if(hinted===s.id){ctx.shadowColor='#ffe66d';ctx.shadowBlur=30}ctx.translate(x,y);ctx.rotate(s.spin);let g=ctx.createRadialGradient(-8,-10,2,0,0,26);g.addColorStop(0,'#fff');g.addColorStop(.3,'#d9e0e4');g.addColorStop(.72,'#7c8992');g.addColorStop(1,'#35434b');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(0,5,19,22,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d7e0e3';ctx.beginPath();ctx.ellipse(0,0,19,18,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#56636a';ctx.lineWidth=2;ctx.stroke();ctx.strokeStyle='#3b464c';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-8,0);ctx.lineTo(8,0);ctx.moveTo(0,-8);ctx.lineTo(0,8);ctx.stroke();ctx.strokeStyle='#fff9';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-8,-10);ctx.lineTo(4,-13);ctx.stroke();ctx.restore()}
+function draw(){ctx.clearRect(0,0,600,600);ctx.save();ctx.translate(300,300);ctx.rotate(angle*Math.PI/180);ctx.translate(-300,-300);ctx.save();ctx.translate(300,300);ctx.transform(1,.10,-.10,.94,0,0);ctx.translate(-300,-300);wood(300,300,390,390,18,'#b87a42');wood(300,300,330,110,13,'#d29a5d');ctx.rotate(Math.PI/2);wood(300,-300,330,110,13,'#c58a50');ctx.restore();ctx.restore();screws.filter(s=>!s.gone).forEach(s=>screw(s));ctx.fillStyle='#f8d8a5';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText('TAP A SCREW TO UNSCREW',300,570)}
+function sound(freq=260){try{let a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.setValueAtTime(freq,a.currentTime);o.frequency.exponentialRampToValueAtTime(freq*.55,a.currentTime+.13);g.gain.setValueAtTime(.08,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.15);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.16)}catch(e){}}
+function toast(t){let el=document.getElementById('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1400)}
+function hit(x,y){let r=c.getBoundingClientRect(),px=(x-r.left)*600/r.width,py=(y-r.top)*600/r.height;let dx=px-300,dy=py-300,a=-angle*Math.PI/180;let rx=dx*Math.cos(a)-dy*Math.sin(a)+300,ry=dx*Math.sin(a)+dy*Math.cos(a)+300;return screws.filter(s=>!s.gone).sort((a,b)=>Math.hypot(a.x-rx,a.y-ry)-Math.hypot(b.x-rx,b.y-ry)).find(s=>Math.hypot(s.x-rx,s.y-ry)<34)}
+c.addEventListener('pointerdown',e=>{let s=hit(e.clientX,e.clientY);if(!s)return;history.push(s.id);s.gone=true;moves++;s.spin+=Math.PI*4;sound(310);if(navigator.vibrate)navigator.vibrate([18,25,18]);if(removeMode){coins=Math.max(0,coins-20);removeMode=false}hinted=-1;sync();draw();if(!screws.some(v=>!v.gone)){coins+=35;sync();setTimeout(()=>document.getElementById('win').style.display='flex',450)}});
+document.getElementById('undo').onclick=()=>{let id=history.pop();if(id===undefined){toast('Nothing to undo');return}let s=screws.find(v=>v.id===id);s.gone=false;moves=Math.max(0,moves-1);document.getElementById('win').style.display='none';sync();draw();sound(180)};
+document.getElementById('hint').onclick=()=>{let s=screws.find(v=>!v.gone);if(!s){toast('Board is clear!');return}hinted=s.id;draw();toast('Try this screw next!');sound(520)};
+document.getElementById('remove').onclick=()=>{if(coins<20){toast('Need 20 coins');return}removeMode=true;toast('Choose a screw to remove • 20 coins')};
+document.getElementById('rotate').onclick=()=>{angle=(angle+90)%360;draw();sound(220)};
+function next(){level++;document.getElementById('win').style.display='none';makeLevel();toast('New puzzle unlocked!')}
+document.getElementById('next').onclick=next;document.getElementById('continue').onclick=next;
+makeLevel();
+</script></body></html>
