@@ -34,7 +34,7 @@ jobs:
           node - <<'NODE'
           const fs = require('fs');
           const html = fs.readFileSync('WoodScrewPuzzle/app/src/main/assets/index.html', 'utf8');
-          const match = html.match(/<script>([\\s\\S]*?)<\\/script>/);
+          const match = html.match(/<script>([\s\S]*?)<\/script>/);
           if (!match) throw new Error('Inline game script not found');
           fs.writeFileSync('/tmp/rk-game-inline.js', match[1]);
           NODE
