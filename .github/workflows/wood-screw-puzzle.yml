@@ -28,6 +28,17 @@ jobs:
           npm install --no-save three@0.160.0
           mkdir -p app/src/main/assets
           cp node_modules/three/build/three.min.js app/src/main/assets/three.min.js
+      - name: Validate game JavaScript syntax and local 3D engine
+        run: |
+          test -s WoodScrewPuzzle/app/src/main/assets/three.min.js
+          node - <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('WoodScrewPuzzle/app/src/main/assets/index.html', 'utf8');
+          const match = html.match(/<script>([\\s\\S]*?)<\\/script>/);
+          if (!match) throw new Error('Inline game script not found');
+          fs.writeFileSync('/tmp/rk-game-inline.js', match[1]);
+          NODE
+          node --check /tmp/rk-game-inline.js
       - name: Build Android APK
         run: |
           cd WoodScrewPuzzle
